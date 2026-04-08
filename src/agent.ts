@@ -4,7 +4,7 @@ import type { Scheduler } from "./scheduler";
 import { classifyIntent } from "./intents";
 import { handleNewTask } from "./handlers/newTask";
 import { handleSetCommitment, handlePushTime } from "./handlers/commitment";
-import { handleNotStarted, handleExcuse, handleMicroCommitment } from "./handlers/excuse";
+import { handleExcuse, handleMicroCommitment } from "./handlers/excuse";
 import { handleCompleted, handleDrop } from "./handlers/completion";
 import { doCheckin as _doCheckin } from "./handlers/checkin";
 import { NO_TASK_PROMPT, TASK_CONFLICT } from "./prompts";
@@ -28,6 +28,7 @@ export class Agent {
    * Entry point called by the Photon watcher for every incoming DM.
    */
   async handleMessage(message: Message): Promise<void> {
+    if (message.isFromMe) return;
     if (message.isReaction) return;
     if (!message.text?.trim()) return;
 
@@ -81,7 +82,7 @@ export class Agent {
         if (!task) {
           await send(this.sdk, phone, NO_TASK_PROMPT());
         } else {
-          await handleNotStarted(this.sdk, phone);
+          await handleExcuse(this.sdk, this.store, phone, "", task);
         }
         break;
 

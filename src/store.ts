@@ -28,10 +28,17 @@ export class Store {
         last_excuse     TEXT,
         tone_level      INTEGER DEFAULT 1,
         last_checkin    TEXT,
+        estimated_hours REAL,
         created_at      TEXT NOT NULL,
         updated_at      TEXT NOT NULL
       )
     `);
+    // Backfill column for databases created before estimated_hours was added
+    try {
+      this.db.exec(`ALTER TABLE tasks ADD COLUMN estimated_hours REAL`);
+    } catch {
+      // Column already exists — ignore
+    }
   }
 
   /** Returns the active task for a phone number (excludes completed/dropped). */
@@ -50,10 +57,10 @@ export class Store {
       .prepare(
         `INSERT INTO tasks
            (phone, title, status, commitment_time, checkin_time, attempts,
-            last_excuse, tone_level, last_checkin, created_at, updated_at)
+            last_excuse, tone_level, last_checkin, estimated_hours, created_at, updated_at)
          VALUES
            (@phone, @title, @status, @commitment_time, @checkin_time, @attempts,
-            @last_excuse, @tone_level, @last_checkin, @created_at, @updated_at)
+            @last_excuse, @tone_level, @last_checkin, @estimated_hours, @created_at, @updated_at)
          ON CONFLICT(phone) DO UPDATE SET
            title           = excluded.title,
            status          = excluded.status,
@@ -63,6 +70,7 @@ export class Store {
            last_excuse     = excluded.last_excuse,
            tone_level      = excluded.tone_level,
            last_checkin    = excluded.last_checkin,
+           estimated_hours = excluded.estimated_hours,
            updated_at      = excluded.updated_at`
       )
       .run(task);
@@ -81,6 +89,7 @@ export class Store {
         | "last_excuse"
         | "tone_level"
         | "last_checkin"
+        | "estimated_hours"
         | "title"
       >
     >

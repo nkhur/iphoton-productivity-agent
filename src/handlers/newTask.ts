@@ -3,6 +3,7 @@ import type { Store } from "../store";
 import type { ActiveTask } from "../types";
 import { ASK_COMMITMENT, TASK_CONFLICT } from "../prompts";
 import { send } from "../send";
+import { extractDurationHours } from "../intents";
 
 export async function handleNewTask(
   sdk: IMessageSDK,
@@ -18,6 +19,8 @@ export async function handleNewTask(
   }
 
   const now = new Date().toISOString();
+  const estimatedHours = await extractDurationHours(messageText.trim());
+
   const task: ActiveTask = {
     phone,
     title: messageText.trim(),
@@ -28,10 +31,11 @@ export async function handleNewTask(
     last_excuse: null,
     tone_level: 1,
     last_checkin: null,
+    estimated_hours: estimatedHours,
     created_at: now,
     updated_at: now,
   };
 
   store.upsertTask(task);
-  await send(sdk, phone, `Got it — ${task.title}. ${ASK_COMMITMENT()}`);
+  await send(sdk, phone, `got it — ${task.title}. ${ASK_COMMITMENT()}`);
 }

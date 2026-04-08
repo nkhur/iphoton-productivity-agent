@@ -28,6 +28,7 @@ export interface ActiveTask {
   last_excuse: string | null;
   tone_level: ToneLevel;
   last_checkin: string | null;      // ISO 8601
+  estimated_hours: number | null;  // extracted from task title (e.g. "study for 2h" → 2)
   created_at: string;
   updated_at: string;
 }

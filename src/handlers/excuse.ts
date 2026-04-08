@@ -1,23 +1,13 @@
 import type { IMessageSDK } from "@photon-ai/imessage-kit";
 import type { Store } from "../store";
 import type { ActiveTask } from "../types";
-import { TONE_SYSTEM, ASK_WHY } from "../prompts";
+import { TONE_SYSTEM } from "../prompts";
 import { generateExcuseResponse } from "../intents";
 import { send } from "../send";
 
 /**
- * User said "not yet" or "no" — prompt for the reason.
- */
-export async function handleNotStarted(
-  sdk: IMessageSDK,
-  phone: string
-): Promise<void> {
-  await send(sdk, phone, ASK_WHY());
-}
-
-/**
- * User gave an excuse — respond empathetically (tone-scaled) and offer
- * two options: push time, or do a micro version now.
+ * User gave an excuse OR said "not yet" — skip asking why and immediately
+ * offer options: push time or start a small version now.
  */
 export async function handleExcuse(
   sdk: IMessageSDK,

@@ -63,8 +63,9 @@ export async function handleSetCommitment(
   });
 
   scheduler.schedule(phone, commitDate, doCheckin);
+  scheduleAdvanceReminder(sdk, scheduler, phone, task, commitDate);
 
-  await send(sdk,phone, COMMITMENT_ACK(formatTime(commitDate)));
+  await send(sdk, phone, COMMITMENT_ACK(formatTime(commitDate)));
 }
 
 /**
@@ -108,6 +109,7 @@ export async function handlePushTime(
   });
 
   scheduler.schedule(phone, newDate, doCheckin);
+  scheduleAdvanceReminder(sdk, scheduler, phone, task, newDate);
 
   const PUSH_MSGS: Record<number, (t: string) => string> = {
     1: (t) => `Alright. ${t} then.`,
@@ -116,5 +118,37 @@ export async function handlePushTime(
     4: (t) => `${t}. No more after this.`,
   };
 
-  await send(sdk,phone, PUSH_MSGS[newTone](formatTime(newDate)));
+  await send(sdk, phone, PUSH_MSGS[newTone](formatTime(newDate)));
+}
+
+/**
+ * If the task has an estimated duration, schedule a heads-up reminder
+ * that many hours before the commitment time.
+ */
+function scheduleAdvanceReminder(
+  sdk: IMessageSDK,
+  scheduler: Scheduler,
+  phone: string,
+  task: ActiveTask,
+  commitDate: Date
+): void {
+  if (!task.estimated_hours || task.estimated_hours <= 0) return;
+
+  const reminderAt = new Date(
+    commitDate.getTime() - task.estimated_hours * 60 * 60 * 1000
+  );
+
+  if (reminderAt.getTime() <= Date.now()) return; // not enough lead time
+
+  scheduler.schedule(`${phone}:remind`, reminderAt, async () => {
+    const label =
+      task.estimated_hours === 1
+        ? "1 hour"
+        : `${task.estimated_hours}h`;
+    await send(
+      sdk,
+      phone,
+      `heads up — "${task.title}" is at ${formatTime(commitDate)}. you said it takes ~${label}. time to start.`
+    );
+  });
 }

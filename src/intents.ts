@@ -70,8 +70,11 @@ export async function generateExcuseResponse(
   task: ActiveTask,
   toneInstruction: string
 ): Promise<string> {
-  const prompt = `The user is trying to complete a task: "${task.title}".
-They gave this excuse for not doing it: "${excuse}".
+  const excuseContext = excuse
+    ? `they said: "${excuse}".`
+    : `they didn't give a reason.`;
+
+  const prompt = `The user hasn't done their task: "${task.title}". ${excuseContext}
 Attempts so far: ${task.attempts}.
 
 ${toneInstruction}
@@ -80,7 +83,7 @@ Offer exactly two options in your reply:
 1. Push the task to a later time
 2. Do a small version right now (e.g. "20 min")
 
-Keep the entire reply under 2 sentences. Do not use bullet points.`;
+Keep the entire reply under 2 sentences. Do not use bullet points. Write in all lowercase.`;
 
   try {
     const res = await client.messages.create({
@@ -121,6 +124,33 @@ Respond with ONLY an ISO 8601 datetime string (e.g. "2026-04-06T17:00:00") or "n
     if (text === "null") return null;
     const d = new Date(text);
     return isNaN(d.getTime()) ? null : d.toISOString();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Extract estimated duration in hours from a task title.
+ * Returns null if no duration is mentioned.
+ * e.g. "study for 2 hours" → 2, "30 min workout" → 0.5, "finish essay" → null
+ */
+export async function extractDurationHours(title: string): Promise<number | null> {
+  const prompt = `Extract the number of hours required to complete this task.
+Task: "${title}"
+Examples: "study for 2 hours" → 2, "30 minute workout" → 0.5, "1.5h run" → 1.5, "finish essay" → null
+Respond with ONLY a number (decimals ok) or "null" if no duration is mentioned.`;
+
+  try {
+    const res = await client.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 10,
+      messages: [{ role: "user", content: prompt }],
+    });
+    const text =
+      res.content[0].type === "text" ? res.content[0].text.trim() : "null";
+    if (text === "null") return null;
+    const num = parseFloat(text);
+    return isNaN(num) || num <= 0 ? null : num;
   } catch {
     return null;
   }
