@@ -33,6 +33,7 @@ async function main(): Promise<void> {
   await sdk.startWatching({
     onDirectMessage: async (message) => {
       try {
+        console.log("RAW MESSAGE:", message);
         await agent.handleMessage(message);
       } catch (err) {
         console.error("[index] unhandled error in handleMessage:", err);
