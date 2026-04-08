@@ -28,7 +28,10 @@ export class Agent {
    * Entry point called by the Photon watcher for every incoming DM.
    */
   async handleMessage(message: Message): Promise<void> {
-    if (message.isFromMe) return;
+    if (message.isFromMe) {
+      console.log("isFromMe:", message.isFromMe);
+      return;
+    }
     if (message.isReaction) return;
     if (!message.text?.trim()) return;
 
