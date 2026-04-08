@@ -17,7 +17,7 @@ async function main(): Promise<void> {
     plugins: [loggerPlugin({ level: "info", logNewMessage: true })],
     watcher: {
       pollInterval: 2000,
-      unreadOnly: true,
+      unreadOnly: false,
       excludeOwnMessages: true,
     },
   });
