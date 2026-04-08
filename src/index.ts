@@ -12,6 +12,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+
   const sdk = new IMessageSDK({
     debug: process.env.NODE_ENV !== "production",
     plugins: [loggerPlugin({ level: "info", logNewMessage: true })],
