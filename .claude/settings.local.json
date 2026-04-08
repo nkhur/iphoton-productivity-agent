@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir D:\\\\Work\\\\iphoton_application:*)",
+      "Bash(dir \"D:\\\\Work\\\\iphoton_application\")",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:photon.codes)",
+      "Bash(bun init:*)",
+      "Bash(npm --version)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(echo \"EXIT:$?\")"
+    ]
+  }
+}
