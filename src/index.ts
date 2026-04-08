@@ -18,7 +18,7 @@ async function main(): Promise<void> {
     watcher: {
       pollInterval: 2000,
       unreadOnly: false,
-      excludeOwnMessages: true,
+      excludeOwnMessages: false,
     },
   });
 
